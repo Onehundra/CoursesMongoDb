@@ -31,15 +31,55 @@ namespace CoursesMongoDb
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+            //CREATE - Post
             app.MapPost("/course", async (Courses course) =>
             {
-                var testDB = await db.AddCourse("Courses", course);
-                return Results.Ok(testDB);
+                var record = await db.AddCourse("Courses", course);
+                return Results.Ok(record);
 
             });
+            //READALL - Get
+            app.MapGet("/courses", async () =>
+            {
+                var courses = await db.GetAllCourses("Courses");
+                return Results.Ok(courses);
+            });
+            //GET BY ID - Get
+            app.MapGet("/course/id/{id}", async (string id) =>
+            {
+                var course = await db.GetCourseById("Courses", id);
 
-            app.Run();
+                if(course == null)
+                {
+                    return Results.NotFound();
+                }
+                return Results.Ok(course);
+            });
+            //UPDATE - Put
+            app.MapPut("course/{id}", async (string id, Courses updatedCourse) =>
+            {
+                var existingCourse = await db.GetCourseById("Courses", id);
+
+                if(existingCourse == null)
+                {
+                    return Results.NotFound();
+                }
+                updatedCourse.Id = existingCourse.Id;
+
+                var result = await db.UpdateCourse("Courses", id, updatedCourse);
+                return Results.Ok(result);
+            });
+
+
+            //Delete
+
+            app.MapDelete("/course/{id}", async (string id) =>
+            {
+                var course = await db.DeleteCourse("Courses", id);
+                return Results.Ok(course);
+            });
+
+            app.Run(); 
         }
     }
 }
